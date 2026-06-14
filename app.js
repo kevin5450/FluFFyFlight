@@ -198,11 +198,35 @@ const ANN = {
   landing: "Ladies and gentlemen, we have begun our descent. Cabin crew, please prepare the cabin for landing and fasten your seat belt.",
   arrival: "We have arrived at your destination. Thank you for studying with FluffyFlight. We hope to see you on board again soon.",
 };
+// Pick an American English voice so announcements don't get read with the
+// system default voice (which on many machines is a non-English voice reading
+// English — the "Korean accent" problem). Voices load async, so we cache the
+// choice and refresh it when the list becomes available.
+let _enVoice = null;
+function pickEnglishVoice() {
+  const s = window.speechSynthesis; if (!s) return null;
+  const vs = s.getVoices(); if (!vs.length) return null;
+  const named = /Samantha|Aria|Jenny|Ava|Allison|Joanna|Google US English|Microsoft.*(Zira|Aria|Jenny|David|Mark|Guy)/i;
+  return (
+    vs.find(v => /^en[-_]US/i.test(v.lang) && named.test(v.name)) ||
+    vs.find(v => /^en[-_]US/i.test(v.lang)) ||
+    vs.find(v => /^en[-_]GB/i.test(v.lang)) ||
+    vs.find(v => /^en/i.test(v.lang)) ||
+    null
+  );
+}
+if (window.speechSynthesis) {
+  _enVoice = pickEnglishVoice();
+  window.speechSynthesis.addEventListener("voiceschanged", () => { _enVoice = pickEnglishVoice(); });
+}
 function speak(text) {
   try {
     const s = window.speechSynthesis; if (!s) return;
     s.cancel();
     const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    if (!_enVoice) _enVoice = pickEnglishVoice();
+    if (_enVoice) u.voice = _enVoice;
     u.rate = 0.95; u.pitch = 1; u.volume = 0.9;
     s.speak(u);
   } catch (e) {}

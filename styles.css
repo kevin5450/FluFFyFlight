@@ -225,27 +225,38 @@ body.flight-mode #to-laptop { display: flex; }
 #to-laptop .cap { font-size: 11px; letter-spacing: .08em; }
 #to-laptop:hover { background: #1d4a5e; }
 
-/* Overhead cabin sign panel — always visible in flight; lights off by default,
-   illuminated (like a real panel) when the seat-belt sign is on. */
+/* Overhead cabin sign — a dark, recessed plastic panel with two backlit lamps,
+   like a real aircraft sign. No-smoking is permanently lit; the seat-belt lamp
+   illuminates when #cabin-sign has the .lit class. */
 #cabin-sign {
   position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 1650;
-  display: none; align-items: center; justify-content: space-between;
-  width: min(440px, 84vw); height: 48px; padding: 0 30px;
-  background: linear-gradient(#ddd4c2, #ccc2aa 55%, #bcb398);
-  border: 1px solid rgba(120,108,80,.4); border-top: 0; border-radius: 0 0 18px 18px;
-  box-shadow: 0 10px 22px rgba(0,0,0,.4), inset 0 -3px 7px rgba(80,70,45,.25), inset 0 2px 0 rgba(255,255,255,.45);
+  display: none; align-items: stretch; justify-content: center; gap: 8px;
+  height: 50px; padding: 6px 10px;
+  background: linear-gradient(#2b2c30, #1c1d21 58%, #141518);
+  border: 1px solid #0c0d10; border-top: 0; border-radius: 0 0 14px 14px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.5), inset 0 2px 0 rgba(255,255,255,.06), inset 0 -4px 8px rgba(0,0,0,.55);
 }
 body.flight-mode #cabin-sign { display: flex; }
-.cs-icon { height: 30px; width: auto; }
-#cabin-sign .cig   { fill: #6f6549; transition: fill .35s ease; }
-#cabin-sign .ban   { stroke: #6f6549; stroke-width: 3.4; fill: none; transition: stroke .35s ease; }
-#cabin-sign .belt  { fill: #6f6549; transition: fill .35s ease; }
-#cabin-sign .arrow { stroke: #6f6549; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: stroke .35s ease; }
-#cabin-sign.lit { background: linear-gradient(#e7decb, #d7cdb3 55%, #c7bda0); }
-#cabin-sign.lit .cig   { fill: #ffcf4a; }
-#cabin-sign.lit .ban   { stroke: #ff453a; filter: drop-shadow(0 0 3px rgba(255,69,58,.85)); }
-#cabin-sign.lit .belt  { fill: #ffb43c; filter: drop-shadow(0 0 3px rgba(255,180,60,.8)); }
-#cabin-sign.lit .arrow { stroke: #35d07f; filter: drop-shadow(0 0 3px rgba(53,208,127,.85)); }
+.cs-cell {
+  display: flex; align-items: center; gap: 7px; padding: 0 13px; border-radius: 7px;
+  background: rgba(255,255,255,.03);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), inset 0 1px 3px rgba(0,0,0,.6);
+}
+.cs-icon { height: 26px; width: auto; }
+.cs-label { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; line-height: 1.04; white-space: nowrap; }
+
+/* No-smoking lamp — ALWAYS illuminated. */
+.cs-smoke { background: rgba(58,16,14,.55); box-shadow: inset 0 0 0 1px rgba(255,80,70,.22), inset 0 0 14px rgba(255,60,50,.25); }
+.cs-smoke .cig { fill: #ffd75a; }
+.cs-smoke .ban { stroke: #ff453a; stroke-width: 3.4; fill: none; filter: drop-shadow(0 0 3px rgba(255,69,58,.9)); }
+.cs-smoke .cs-label { color: #ff6a5e; text-shadow: 0 0 6px rgba(255,69,58,.65); }
+
+/* Fasten-seat-belt lamp — dim by default, amber when lit. */
+.cs-belt .belt { fill: #5b5440; transition: fill .35s ease, filter .35s ease; }
+.cs-belt .cs-label { color: #6a6450; transition: color .35s ease, text-shadow .35s ease; }
+#cabin-sign.lit .cs-belt { background: rgba(70,42,8,.55); box-shadow: inset 0 0 0 1px rgba(255,180,60,.22), inset 0 0 14px rgba(255,170,50,.25); }
+#cabin-sign.lit .cs-belt .belt { fill: #ffb43c; filter: drop-shadow(0 0 3px rgba(255,180,60,.85)); }
+#cabin-sign.lit .cs-belt .cs-label { color: #ffc65a; text-shadow: 0 0 6px rgba(255,180,60,.65); }
 
 /* Controls */
 #seat-controls {
@@ -302,11 +313,13 @@ body.window-open #window-view { display: flex; }
   from { transform: scale(1.06) translate3d(-1.2%, -0.8%, 0); }
   to   { transform: scale(1.08) translate3d( 1.2%,  0.8%, 0); }
 }
-/* High-quality photographic skies (Unsplash). Each falls back to a gradient when offline. */
-.sky-day   { background-image: url("https://images.unsplash.com/photo-1525490829609-d166ddb58678?w=1400&q=80"), linear-gradient(#2f95dd 0%, #7ec3ee 55%, #cdeafd 100%); }
-.sky-dawn  { background-image: url("https://images.unsplash.com/photo-1530908295418-a12e326966ba?w=1400&q=80"), linear-gradient(#243a6e 0%, #8a6aa0 45%, #f0a06a 80%, #ffd3a0 100%); }
-.sky-dusk  { background-image: url("https://images.unsplash.com/photo-1499063078284-f78f7d89616a?w=1400&q=80"), linear-gradient(#1b2350 0%, #6a4a7a 45%, #d9794a 80%, #f5c070 100%); }
-.sky-night { background-image: url("https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=1400&q=80"), linear-gradient(#05081c 0%, #0b1430 60%, #122046 100%); }
+/* Self-rendered live skies — pure gradients so the view always animates and
+   never depends on the network. Real-time brightness/saturation/tint are layered
+   on by JS; the sun, moon, clouds and stars below provide the live motion. */
+.sky-day   { background: linear-gradient(#1f7fd6 0%, #59abe8 46%, #a9dcf7 78%, #d7eefc 100%); }
+.sky-dawn  { background: linear-gradient(#22386e 0%, #6a5198 38%, #cf7c63 72%, #f4ad74 90%, #ffd9a8 100%); }
+.sky-dusk  { background: linear-gradient(#161e48 0%, #4a3670 36%, #b35e44 72%, #e89a5a 92%, #f6c47e 100%); }
+.sky-night { background: linear-gradient(#04061a 0%, #080f2c 48%, #101d45 80%, #182a55 100%); }
 
 /* Two soft haze bands drifting at different speeds — atmosphere movement. */
 #window-sky::before, #window-sky::after {
@@ -345,7 +358,28 @@ body.window-open #window-view { display: flex; }
 #window-sky.sky-dusk  .stars { opacity: .35; }
 #window-sky.sky-night .stars { opacity: .9; animation: star-twinkle 7s ease-in-out infinite; }
 @keyframes star-twinkle { 0%, 100% { opacity: .55; } 50% { opacity: .95; } }
-#sun, #moon { display: none; }   /* lighting now comes from the photo + real-time tint */
+/* Sun & moon — visible, glowing, and always slowly drifting (the "live" motion).
+   Shown per time-of-day via the sky class on #window-sky. */
+#sun, #moon { display: none; position: absolute; border-radius: 50%; z-index: 1; pointer-events: none; will-change: transform; }
+#sun {
+  width: 82px; height: 82px; left: 58%; top: 26%;
+  background: radial-gradient(circle, #fff 0%, #fff0b8 36%, #ffd35e 58%, rgba(255,205,90,0) 72%);
+  filter: drop-shadow(0 0 26px rgba(255,214,120,.9));
+  animation: sun-drift 80s ease-in-out infinite alternate;
+}
+#moon {
+  width: 60px; height: 60px; left: 56%; top: 22%;
+  background: radial-gradient(circle at 38% 36%, #fdfdff 0%, #dce3f3 52%, #aab6d6 100%);
+  box-shadow: 0 0 26px rgba(200,215,255,.6), inset -9px -7px 0 rgba(120,135,175,.32);
+  animation: moon-drift 110s ease-in-out infinite alternate;
+}
+@keyframes sun-drift  { from { transform: translate(-16%, 10%); } to { transform: translate(14%, -12%); } }
+@keyframes moon-drift { from { transform: translate(-12%, 8%);  } to { transform: translate(12%, -10%); } }
+#window-sky.sky-day  #sun,
+#window-sky.sky-dawn #sun,
+#window-sky.sky-dusk #sun  { display: block; }
+#window-sky.sky-dusk  #moon,
+#window-sky.sky-night #moon { display: block; }
 
 /* Real-time lighting tint (JS sets --win-tint from the plane's local solar time). */
 #window-inner::before {

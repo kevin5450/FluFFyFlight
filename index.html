@@ -65,21 +65,27 @@
     <span class="cap">Laptop</span><span class="arrow">›</span>
   </button>
 
-  <!-- Overhead cabin sign panel (no-smoking + fasten seat belt). Always shown in
-       flight; the lights illuminate during takeoff, hourly checks and landing. -->
+  <!-- Overhead cabin sign panel. The no-smoking lamp is ALWAYS illuminated (as on
+       a real aircraft); the fasten-seat-belt lamp lights during takeoff, hourly
+       checks and landing (toggled via the `.lit` class on #cabin-sign). -->
   <div id="cabin-sign" aria-hidden="true">
-    <svg class="cs-icon" viewBox="0 0 70 44" aria-hidden="true">
-      <rect class="cig" x="6" y="21" width="30" height="7" rx="1.5"/>
-      <rect class="cig" x="37" y="21" width="6" height="7" rx="1"/>
-      <circle class="ban" cx="24" cy="24.5" r="16" fill="none"/>
-      <line class="ban" x1="12.7" y1="13.2" x2="35.3" y2="35.8"/>
-    </svg>
-    <svg class="cs-icon" viewBox="0 0 90 44" aria-hidden="true">
-      <path class="arrow" d="M8 22 H22 M17 16.5 L22.5 22 L17 27.5"/>
-      <path class="belt" d="M44 17 L30 21 L30 25 L44 25 Z"/>
-      <path class="belt" d="M50 17 L64 21 L64 25 L50 25 Z"/>
-      <rect class="belt" x="42" y="16" width="10" height="12" rx="2.5"/>
-    </svg>
+    <div class="cs-cell cs-smoke">
+      <svg class="cs-icon" viewBox="0 0 50 44" aria-hidden="true">
+        <rect class="cig" x="6" y="21" width="22" height="6" rx="1.5"/>
+        <rect class="cig" x="29" y="21" width="5" height="6" rx="1"/>
+        <circle class="ban" cx="20" cy="24" r="15.5" fill="none"/>
+        <line class="ban" x1="9" y1="13" x2="31" y2="35"/>
+      </svg>
+      <span class="cs-label">No<br>Smoking</span>
+    </div>
+    <div class="cs-cell cs-belt">
+      <svg class="cs-icon" viewBox="0 0 56 44" aria-hidden="true">
+        <path class="belt" d="M22 17 L8 21 L8 25 L22 25 Z"/>
+        <path class="belt" d="M28 17 L42 21 L42 25 L28 25 Z"/>
+        <rect class="belt" x="20" y="16" width="10" height="12" rx="2.5"/>
+      </svg>
+      <span class="cs-label">Fasten<br>Seat Belt</span>
+    </div>
   </div>
 
   <div id="seatback">
