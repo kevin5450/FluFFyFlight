@@ -389,20 +389,12 @@ function simFrame() {
     const el = planeMarker.getElement(); if (el) el.querySelector("svg").style.transform = `rotate(${brg}deg)`;
   }
 
-  // Window day/night based on the plane's current longitude.
+  // Window: a live night sky for the whole flight — only the position updates.
   if (selectedSeat === "window") {
-    const sky = document.getElementById("window-sky"), want = skyClass(cur[1]);
-    if (!sky.classList.contains(want)) sky.className = want;
-    const h = solarHour(cur[1]);
-    if (lastMoodH === null || Math.abs(h - lastMoodH) > 0.02) {   // recompute lighting only as the sun meaningfully shifts
-      const mood = skyMood(h);
-      sky.style.setProperty("--win-bright", mood.bright);
-      sky.style.setProperty("--win-sat", mood.sat);
-      document.getElementById("window-inner").style.setProperty("--win-tint", mood.tint);
-      lastMoodH = h;
-    }
+    const sky = document.getElementById("window-sky");
+    if (!sky.classList.contains("sky-night")) sky.className = "sky-night";
     document.getElementById("window-info").textContent =
-      `Outside: ${SKY_LABEL[want]}  ·  ${cur[0].toFixed(0)}°, ${(((cur[1] + 180) % 360 + 360) % 360 - 180).toFixed(0)}°`;
+      `Outside: Night 🌙  ·  ${cur[0].toFixed(0)}°, ${(((cur[1] + 180) % 360 + 360) % 360 - 180).toFixed(0)}°`;
   }
 
   document.getElementById("ife-remaining").textContent = fmtClock((totalMin - simElapsedMin) * 60);
