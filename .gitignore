@@ -1,0 +1,27 @@
+# Secrets / credentials — never commit
+.env
+.env.*
+*.pem
+*.key
+*.token
+secrets*
+
+# Database — contains user accounts, password hashes, session tokens.
+# Generated locally on first run of server.py.
+*.db
+*.sqlite
+*.sqlite3
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Node / build output
+node_modules/
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db

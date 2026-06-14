@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FluffyFlight</title>
+
+<!-- Leaflet (map library) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- App styles -->
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="map"></div>
+
+<!-- ===== Top bar (after login, map phase) ===== -->
+<div id="topbar">
+  <span id="greeting"></span>
+  <button class="bar-btn" id="btn-reception" onclick="openReception()">🛎 Reception</button>
+  <button class="bar-btn" id="btn-mypage" onclick="openMyPage()">🎫 My Page</button>
+  <button class="bar-btn ghost" id="btn-logout" onclick="logout()">Log out</button>
+</div>
+
+<button id="back">‹ World map</button>
+
+<!-- ===== Planning panel (map phase) ===== -->
+<div id="panel">
+  <div class="slots">
+    <div class="slot" id="slot-dep" onclick="activate('dep')">
+      <div class="label">Departure</div>
+      <div class="value" id="dep-value">Select…</div>
+      <div class="sub" id="dep-sub"></div>
+    </div>
+    <div class="slot" id="slot-arr" onclick="activate('arr')">
+      <div class="label">Arrival</div>
+      <div class="value" id="arr-value">Select…</div>
+      <div class="sub" id="arr-sub"></div>
+    </div>
+  </div>
+  <div id="result"></div>
+
+  <div id="seat-choice">
+    <div class="seat-q">Choose your seat</div>
+    <div class="seat-pills">
+      <button class="seat-pill" id="seat-window" onclick="chooseSeat('window')">🪟 Window</button>
+      <button class="seat-pill" id="seat-aisle"  onclick="chooseSeat('aisle')">🚶 Aisle</button>
+    </div>
+  </div>
+
+  <button id="start" onclick="go()">Start flight ✈</button>
+  <div class="reset-pick" id="reset" onclick="resetPicks()" style="display:none">clear selection</div>
+</div>
+
+<div id="hint">Click a continent name to zoom in</div>
+
+<!-- ===== In-flight seat view (PC attached to the seat in front of you) ===== -->
+<div id="seat-view">
+  <!-- Left arrow → window view (window seat only) -->
+  <button id="to-window" onclick="openWindowView()" title="Look out the window" aria-label="Look out the window">
+    <span class="arrow">‹</span><span class="cap">Window</span>
+  </button>
+
+  <!-- Right arrow → laptop (tray table; both seat types) -->
+  <button id="to-laptop" onclick="openLaptopView()" title="Open your laptop" aria-label="Open your laptop">
+    <span class="cap">Laptop</span><span class="arrow">›</span>
+  </button>
+
+  <!-- Overhead cabin sign panel (no-smoking + fasten seat belt). Always shown in
+       flight; the lights illuminate during takeoff, hourly checks and landing. -->
+  <div id="cabin-sign" aria-hidden="true">
+    <svg class="cs-icon" viewBox="0 0 70 44" aria-hidden="true">
+      <rect class="cig" x="6" y="21" width="30" height="7" rx="1.5"/>
+      <rect class="cig" x="37" y="21" width="6" height="7" rx="1"/>
+      <circle class="ban" cx="24" cy="24.5" r="16" fill="none"/>
+      <line class="ban" x1="12.7" y1="13.2" x2="35.3" y2="35.8"/>
+    </svg>
+    <svg class="cs-icon" viewBox="0 0 90 44" aria-hidden="true">
+      <path class="arrow" d="M8 22 H22 M17 16.5 L22.5 22 L17 27.5"/>
+      <path class="belt" d="M44 17 L30 21 L30 25 L44 25 Z"/>
+      <path class="belt" d="M50 17 L64 21 L64 25 L50 25 Z"/>
+      <rect class="belt" x="42" y="16" width="10" height="12" rx="2.5"/>
+    </svg>
+  </div>
+
+  <div id="seatback">
+    <div id="headrest"></div>
+    <div id="seat-shoulders"></div>
+    <div id="ife-frame">
+      <div id="ife-screen">
+        <!-- #map is moved in here during flight -->
+        <div id="ife-overlay">
+          <div id="ife-progress-wrap"><div id="ife-progress"></div></div>
+          <div id="ife-top">
+            <div>
+              <div id="ife-route"></div>
+              <div id="ife-cities"></div>
+            </div>
+            <div id="ife-right">
+              <div id="ife-remaining">--:--</div>
+              <div id="ife-remaining-label">remaining</div>
+              <div id="ife-clock"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="seat-pocket"><span>SAFETY · FluffyFlight</span></div>
+  </div>
+
+  <!-- Controls -->
+  <div id="seat-controls">
+    <div id="speed-control">
+      <span class="ctl-label">Speed</span>
+      <button class="spd active" onclick="setSpeed(1,this)" data-mult="1">×1</button>
+      <button class="spd" onclick="setSpeed(2,this)" data-mult="2">×2</button>
+      <button class="spd" onclick="setSpeed(4,this)" data-mult="4">×4</button>
+      <div id="speed-eta" aria-hidden="true"></div>
+    </div>
+    <button class="ctl-btn" id="mute-btn" onclick="toggleMute()">🔊 Cabin sound</button>
+    <button class="ctl-btn" id="bathroom-btn" onclick="openBathroom()">🚻 Break  (→)</button>
+    <button class="ctl-btn" id="end-btn" onclick="endFlight()">✕ End flight</button>
+  </div>
+</div>
+
+<!-- ===== Window view (reached with the left arrow) ===== -->
+<div id="window-view">
+  <div id="window">
+    <div id="window-inner">
+      <div id="window-sky" class="sky-day">
+        <div class="stars"></div>
+        <div id="sun"></div>
+        <div id="moon"></div>
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+      </div>
+    </div>
+  </div>
+  <div id="window-info"></div>
+  <button id="window-back" onclick="closeWindowView()">Back to seat <span class="arrow">›</span></button>
+</div>
+
+<!-- ===== Laptop view (reached with the right arrow, from any seat) ===== -->
+<div id="laptop-view">
+  <div id="laptop">
+    <div id="laptop-lid">
+      <div id="laptop-screen">
+        <!-- Future home of schedule management + to-do list -->
+        <div class="laptop-placeholder">
+          <div class="lp-badge">✈ FLUFFYFLIGHT · WORKSPACE</div>
+          <div class="lp-title">Schedule &amp; To-Do</div>
+          <div class="lp-sub">Coming soon — plan your study flights and track tasks right here.</div>
+        </div>
+      </div>
+    </div>
+    <div id="laptop-base"><div id="laptop-hinge"></div><div id="laptop-keyboard"></div><div id="laptop-touchpad"></div></div>
+  </div>
+  <div id="laptop-info">Your tray-table laptop · press ‹ to return to your seat</div>
+  <button id="laptop-back" onclick="closeLaptopView()"><span class="arrow">‹</span> Back to seat</button>
+</div>
+
+<!-- ===== Bathroom / rest-break page ===== -->
+<div id="bathroom-view">
+  <div id="lav">
+    <div class="lav-sign">🚻</div>
+    <div class="lav-title">Rest break</div>
+    <div id="rest-timer">00:00</div>
+    <div id="rest-note"></div>
+    <button id="back-seat" onclick="closeBathroom()">‹ Back to seat</button>
+  </div>
+</div>
+
+<!-- ===== Auth / check-in screen ===== -->
+<div id="auth-screen">
+  <div class="checkin-head">✈ FLUFFYFLIGHT &nbsp;·&nbsp; SELF CHECK-IN</div>
+
+  <!-- Landing -->
+  <div class="auth-card" id="auth-landing">
+    <div class="auth-title">Welcome aboard</div>
+    <div class="auth-sub">Check in to start your study flight.</div>
+    <div id="saved-ticket-slot"></div>
+    <div class="auth-actions">
+      <button class="auth-btn primary" onclick="showAuth('login')">Log in</button>
+      <button class="auth-btn" onclick="showAuth('signup')">Sign up</button>
+    </div>
+  </div>
+
+  <!-- Login -->
+  <div class="auth-card hidden" id="auth-login">
+    <div class="auth-title">Log in</div>
+    <label class="fld"><span>Email</span><input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" /></label>
+    <label class="fld"><span>Password</span><input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" /></label>
+    <label class="save-row"><input type="checkbox" id="save-ticket" /> Save my ticket on this device</label>
+    <div class="auth-error" id="login-error"></div>
+    <div class="auth-actions">
+      <button class="auth-btn primary" onclick="doLogin()">Check in →</button>
+      <button class="auth-btn ghost" onclick="showAuth('landing')">Back</button>
+    </div>
+  </div>
+
+  <!-- Signup -->
+  <div class="auth-card hidden" id="auth-signup">
+    <div class="auth-title">Sign up</div>
+    <label class="fld"><span>Full name</span><input id="signup-name" type="text" autocomplete="name" placeholder="As on your passport" /></label>
+    <label class="fld"><span>Email</span><input id="signup-email" type="email" autocomplete="email" placeholder="you@example.com" /></label>
+    <label class="fld"><span>Password</span><input id="signup-password" type="password" autocomplete="new-password" placeholder="Choose a password" /></label>
+    <div class="auth-error" id="signup-error"></div>
+    <div class="auth-actions">
+      <button class="auth-btn primary" onclick="doSignup()">Issue my ticket ✈</button>
+      <button class="auth-btn ghost" onclick="showAuth('landing')">Back</button>
+    </div>
+  </div>
+
+  <!-- Boarding pass (after signup) -->
+  <div class="auth-card boarding hidden" id="auth-boarding">
+    <div id="boarding-pass"></div>
+    <button class="auth-btn primary wide" onclick="boardNow()">Board now →</button>
+  </div>
+</div>
+
+<!-- ===== Reception desk (study-flight recommendations) ===== -->
+<div id="reception" class="overlay hidden">
+  <div class="overlay-head">
+    <span>🛎 Reception desk</span>
+    <button class="x" onclick="closeReception()" aria-label="Close reception desk">✕</button>
+  </div>
+  <div id="reception-body"></div>
+</div>
+
+<!-- ===== My Page (history) ===== -->
+<div id="mypage" class="overlay hidden">
+  <div class="overlay-head">
+    <span>🎫 My boarding passes</span>
+    <button class="x" onclick="closeMyPage()" aria-label="Close My Page">✕</button>
+  </div>
+  <div id="mypage-list"></div>
+</div>
+
+<!-- ===== Flight completion ticket ===== -->
+<div id="completion" class="overlay hidden">
+  <div class="overlay-head"><span>Flight complete ✓</span></div>
+  <div id="completion-ticket"></div>
+  <div class="completion-actions">
+    <button class="auth-btn primary" onclick="completionToMyPage()">View My Page</button>
+    <button class="auth-btn ghost" onclick="closeCompletion()">Back to map</button>
+  </div>
+</div>
+
+<!-- Scripts: Leaflet, data, flight app, account/auth -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="airports.js"></script>
+<script src="app.js"></script>
+<script src="account.js"></script>
+<script src="laptop.js"></script>
+<script src="reception.js"></script>
+</body>
+</html>
