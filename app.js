@@ -219,6 +219,14 @@ if (window.speechSynthesis) {
   _enVoice = pickEnglishVoice();
   window.speechSynthesis.addEventListener("voiceschanged", () => { _enVoice = pickEnglishVoice(); });
 }
+// Diagnostic helper: run ffVoices() in the browser console to see every voice
+// your browser offers and which one FluffyFlight will use.
+window.ffVoices = function () {
+  const vs = (window.speechSynthesis && window.speechSynthesis.getVoices()) || [];
+  console.log("Chosen voice ->", _enVoice ? `${_enVoice.name} (${_enVoice.lang})` : "none (system default)");
+  console.table(vs.map(v => ({ name: v.name, lang: v.lang, default: v.default })));
+  return vs.length;
+};
 function speak(text) {
   try {
     const s = window.speechSynthesis; if (!s) return;
@@ -228,6 +236,7 @@ function speak(text) {
     if (!_enVoice) _enVoice = pickEnglishVoice();
     if (_enVoice) u.voice = _enVoice;
     u.rate = 0.95; u.pitch = 1; u.volume = 0.9;
+    console.log("[FluffyFlight TTS] speaking with:", u.voice ? `${u.voice.name} (${u.voice.lang})` : "system default (no English voice found!)");
     s.speak(u);
   } catch (e) {}
 }
